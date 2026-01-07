@@ -6,9 +6,16 @@ An end-to-end ML system for logistics booking risk prediction with an interactiv
 
 **Predicts:** Cancellation Risk | Broken Route Risk
 
+🌐 **Live Demo:** [https://logistic-ml-2.onrender.com](https://logistic-ml-2.onrender.com)
+
 ---
 
 ## 🚀 Quick Start
+
+### Try it Live
+Visit the deployed application: **[https://logistic-ml-2.onrender.com](https://logistic-ml-2.onrender.com)**
+
+### Run Locally
 
 ```bash
 # 1. Install dependencies
@@ -53,7 +60,8 @@ project_root/
 
 **Frontend:** Bootstrap 5.3 | Plotly.js | Vanilla JavaScript | Jinja2  
 **Backend:** Flask 3.0 | SQLite | Pandas 2.0  
-**ML:** scikit-learn 1.3 | XGBoost 2.0 | NumPy 1.24
+**ML:** scikit-learn 1.3 | XGBoost 2.0 | NumPy 1.24  
+**Deployment:** Render
 
 ---
 
@@ -183,6 +191,8 @@ python-dateutil>=2.8.0
 **Performance:** Use gunicorn/uwsgi, Redis caching, PostgreSQL  
 **Monitoring:** Add logging, error tracking, model performance monitoring
 
+**Current Deployment:** Hosted on Render at [https://logistic-ml-2.onrender.com](https://logistic-ml-2.onrender.com)
+
 ---
 
 ## 📝 Key Files
@@ -203,3 +213,5 @@ MIT License
 ---
 
 **Built with ❤️ for logistics optimization** | *Updated: 2025*
+
+🚀 **Live at:** [https://logistic-ml-2.onrender.com](https://logistic-ml-2.onrender.com)
