@@ -1,0 +1,749 @@
+<!-- ============================================================================
+FILE: templates/dashboard.html
+============================================================================ -->
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Logistics ML{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-bar {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    .filter-group {
+        margin-bottom: 15px;
+    }
+    .filter-group label {
+        font-weight: 600;
+        margin-bottom: 5px;
+        display: block;
+    }
+    .chart-container {
+        min-height: 400px;
+    }
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 30px 0 20px 0;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Advanced Analytics Dashboard</h1>
+    
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <h5 class="mb-3"><i class="fas fa-filter"></i> Filters</h5>
+        <div class="row">
+            <div class="col-md-2">
+                <div class="filter-group">
+                    <label>Start Date</label>
+                    <input type="date" class="form-control" id="filter-start-date">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="filter-group">
+                    <label>End Date</label>
+                    <input type="date" class="form-control" id="filter-end-date">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="filter-group">
+                    <label>Month</label>
+                    <select class="form-control" id="filter-month">
+                        <option value="">All Months</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="filter-group">
+                    <label>Year</label>
+                    <select class="form-control" id="filter-year">
+                        <option value="">All Years</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="filter-group">
+                    <label>Lane</label>
+                    <select class="form-control" id="filter-lane">
+                        <option value="">All Lanes</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="filter-group">
+                    <label>Port</label>
+                    <select class="form-control" id="filter-port">
+                        <option value="">All Ports</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-primary mt-3" onclick="applyFilters()">
+            <i class="fas fa-sync"></i> Apply Filters
+        </button>
+        <button class="btn btn-secondary mt-3" onclick="clearFilters()">
+            <i class="fas fa-times"></i> Clear
+        </button>
+    </div>
+    
+    <!-- KPI Cards -->
+    <div class="row mb-4" id="kpi-cards">
+        <div class="col-md-3">
+            <div class="card kpi-card info">
+                <h5>Total Bookings</h5>
+                <h2 id="total-bookings">-</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card danger">
+                <h5>Cancel Rate</h5>
+                <h2 id="cancel-rate">-</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card warning">
+                <h5>Broken Route Rate</h5>
+                <h2 id="broken-rate">-</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card success">
+                <h5>Unique Lanes</h5>
+                <h2 id="unique-lanes">-</h2>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Original Charts Section -->
+    <div class="section-title">Overview Charts</div>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Cancellations by Lane</h5>
+                    <div id="chart-cancel-lane" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Cancellations by Port</h5>
+                    <div id="chart-cancel-port" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Bookings Over Time</h5>
+                    <div id="chart-bookings-time" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Flow & Movement Visuals -->
+    <div class="section-title">Flow & Movement Visuals</div>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Sankey Diagram: Lane → State → Risk</h5>
+                    <div id="chart-sankey" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Chord Diagram: POL ↔ POD Flows</h5>
+                    <div id="chart-chord" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Flow Map: Port Connections</h5>
+                    <div id="chart-flow-map" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Seasonality & Time Patterns -->
+    <div class="section-title">Seasonality & Time Patterns</div>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Calendar Heatmap: Daily Cancel Rate</h5>
+                    <div id="chart-calendar-heatmap" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ridgeline Plot: Volume Over Time by Lane</h5>
+                    <div id="chart-ridgeline" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Stacked Area Chart: Bookings Over Time by Lane</h5>
+                    <div id="chart-stacked-area" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Cancel Rate Over Time</h5>
+                    <div id="chart-cancel-rate-time" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Utilization & Performance -->
+    <div class="section-title">Utilization & Performance</div>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Waffle Chart: Container States</h5>
+                    <div id="chart-waffle" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Risk Distribution</h5>
+                    <div id="chart-risk-distribution" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Risk & Exceptions -->
+    <div class="section-title">Risk & Exceptions</div>
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Risk Matrix Heatmap: Port × Lane</h5>
+                    <div id="chart-risk-matrix" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Top 5 Risky Lanes</h5>
+                    <div id="chart-top-lanes" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Top 5 Risky Ports</h5>
+                    <div id="chart-top-ports" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Top Outliers: Highest-Risk Bookings</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="table-outliers">
+                            <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Date</th>
+                                    <th>POL</th>
+                                    <th>POD</th>
+                                    <th>Lane</th>
+                                    <th>Cancel Prob</th>
+                                    <th>Risk</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentFilters = {};
+    
+    // Load filter options
+    async function loadFilterOptions() {
+        try {
+            const response = await fetch('/api/filter-options');
+            const data = await response.json();
+            
+            // Populate lanes
+            const laneSelect = document.getElementById('filter-lane');
+            data.lanes.forEach(lane => {
+                const option = document.createElement('option');
+                option.value = lane;
+                option.textContent = lane;
+                laneSelect.appendChild(option);
+            });
+            
+            // Populate ports
+            const portSelect = document.getElementById('filter-port');
+            data.pols.forEach(port => {
+                const option = document.createElement('option');
+                option.value = port;
+                option.textContent = port;
+                portSelect.appendChild(option);
+            });
+            
+            // Populate years
+            const yearSelect = document.getElementById('filter-year');
+            data.years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            });
+            
+            // Populate months
+            const monthSelect = document.getElementById('filter-month');
+            for (let i = 1; i <= 12; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = new Date(2000, i - 1).toLocaleString('default', { month: 'long' });
+                monthSelect.appendChild(option);
+            }
+        } catch (error) {
+            console.error('Error loading filter options:', error);
+        }
+    }
+    
+    // Build query string from filters
+    function buildQueryString() {
+        const params = new URLSearchParams();
+        if (currentFilters.start_date) params.append('start_date', currentFilters.start_date);
+        if (currentFilters.end_date) params.append('end_date', currentFilters.end_date);
+        if (currentFilters.month) params.append('month', currentFilters.month);
+        if (currentFilters.year) params.append('year', currentFilters.year);
+        if (currentFilters.lane) params.append('lane', currentFilters.lane);
+        if (currentFilters.pol) params.append('pol', currentFilters.pol);
+        return params.toString();
+    }
+    
+    // Apply filters
+    function applyFilters() {
+        currentFilters = {
+            start_date: document.getElementById('filter-start-date').value,
+            end_date: document.getElementById('filter-end-date').value,
+            month: document.getElementById('filter-month').value,
+            year: document.getElementById('filter-year').value,
+            lane: document.getElementById('filter-lane').value,
+            pol: document.getElementById('filter-port').value
+        };
+        refreshAllCharts();
+    }
+    
+    // Clear filters
+    function clearFilters() {
+        document.getElementById('filter-start-date').value = '';
+        document.getElementById('filter-end-date').value = '';
+        document.getElementById('filter-month').value = '';
+        document.getElementById('filter-year').value = '';
+        document.getElementById('filter-lane').value = '';
+        document.getElementById('filter-port').value = '';
+        currentFilters = {};
+        refreshAllCharts();
+    }
+    
+    // Refresh all charts
+    function refreshAllCharts() {
+        loadOverviewStats();
+        loadCharts();
+        loadFlowCharts();
+        loadSeasonalityCharts();
+        loadUtilizationCharts();
+        loadRiskCharts();
+    }
+    
+    // Load overview stats
+    async function loadOverviewStats() {
+        try {
+            const queryString = buildQueryString();
+            const response = await fetch(`/api/stats/overview?${queryString}`);
+            const data = await response.json();
+            
+            document.getElementById('total-bookings').textContent = data.total_bookings.toLocaleString();
+            document.getElementById('cancel-rate').textContent = data.cancel_rate.toFixed(2) + '%';
+            document.getElementById('broken-rate').textContent = data.broken_rate.toFixed(2) + '%';
+            document.getElementById('unique-lanes').textContent = data.unique_lanes;
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+    
+    // Load original charts
+    async function loadCharts() {
+        try {
+            const queryString = buildQueryString();
+            const response = await fetch(`/api/stats/charts?${queryString}`);
+            const data = await response.json();
+            
+            // Cancel by lane chart
+            Plotly.newPlot('chart-cancel-lane', [{
+                x: data.cancel_by_lane.labels,
+                y: data.cancel_by_lane.values,
+                type: 'bar',
+                marker: { color: '#dc3545' }
+            }], {
+                yaxis: { title: 'Cancel Rate (%)' },
+                height: 400
+            });
+            
+            // Cancel by port chart
+            Plotly.newPlot('chart-cancel-port', [{
+                x: data.cancel_by_port.labels,
+                y: data.cancel_by_port.values,
+                type: 'bar',
+                marker: { color: '#ffc107' }
+            }], {
+                yaxis: { title: 'Cancel Rate (%)' },
+                height: 400
+            });
+            
+            // Bookings over time
+            if (Object.keys(data.bookings_over_time).length > 0) {
+                const months = Object.keys(data.bookings_over_time);
+                const counts = Object.values(data.bookings_over_time);
+                
+                Plotly.newPlot('chart-bookings-time', [{
+                    x: months,
+                    y: counts,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: { color: '#17a2b8' }
+                }], {
+                    yaxis: { title: 'Number of Bookings' },
+                    height: 400
+                });
+            }
+        } catch (error) {
+            console.error('Error loading charts:', error);
+        }
+    }
+    
+    // Load flow charts
+    async function loadFlowCharts() {
+        try {
+            const queryString = buildQueryString();
+            
+            // Sankey diagram
+            const sankeyResponse = await fetch(`/api/flow-data?${queryString}`);
+            const sankeyData = await sankeyResponse.json();
+            
+            if (sankeyData.nodes && sankeyData.nodes.length > 0) {
+                const sankeyTrace = {
+                    type: "sankey",
+                    node: {
+                        label: sankeyData.nodes.map(n => n.name),
+                        color: Array(sankeyData.nodes.length).fill('#1f77b4')
+                    },
+                    link: {
+                        source: sankeyData.links.map(l => l.source),
+                        target: sankeyData.links.map(l => l.target),
+                        value: sankeyData.links.map(l => l.value)
+                    }
+                };
+                Plotly.newPlot('chart-sankey', [sankeyTrace], { height: 400 });
+            }
+            
+            // Chord diagram (simplified as heatmap)
+            const networkResponse = await fetch(`/api/network-data?${queryString}`);
+            const networkData = await networkResponse.json();
+            
+            if (networkData.matrix && networkData.matrix.length > 0) {
+                Plotly.newPlot('chart-chord', [{
+                    z: networkData.matrix,
+                    x: networkData.labels,
+                    y: networkData.labels,
+                    type: 'heatmap',
+                    colorscale: 'Viridis'
+                }], {
+                    height: 400,
+                    title: 'POL ↔ POD Flow Matrix'
+                });
+            }
+            
+            // Flow map (simplified as scatter)
+            const bookingsResponse = await fetch(`/api/bookings-over-time?${queryString}`);
+            const bookingsData = await bookingsResponse.json();
+            
+            if (bookingsData.dates && bookingsData.dates.length > 0) {
+                Plotly.newPlot('chart-flow-map', [{
+                    x: bookingsData.dates,
+                    y: bookingsData.counts,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: { color: '#e74c3c', width: 2 },
+                    marker: { size: 8 }
+                }], {
+                    yaxis: { title: 'Volume' },
+                    height: 400
+                });
+            }
+        } catch (error) {
+            console.error('Error loading flow charts:', error);
+        }
+    }
+    
+    // Load seasonality charts
+    async function loadSeasonalityCharts() {
+        try {
+            const queryString = buildQueryString();
+            
+            // Calendar heatmap (simplified as line chart)
+            const seasonalityResponse = await fetch(`/api/seasonality-data?${queryString}`);
+            const seasonalityData = await seasonalityResponse.json();
+            
+            if (seasonalityData.dates && seasonalityData.dates.length > 0) {
+                Plotly.newPlot('chart-calendar-heatmap', [{
+                    x: seasonalityData.dates,
+                    y: seasonalityData.values,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    fill: 'tozeroy',
+                    line: { color: '#e74c3c' }
+                }], {
+                    yaxis: { title: 'Cancel Rate (%)' },
+                    height: 400
+                });
+            }
+            
+            // Ridgeline plot (simplified as multi-line)
+            const ridgelineResponse = await fetch(`/api/ridgeline-data?${queryString}`);
+            const ridgelineData = await ridgelineResponse.json();
+            
+            if (Object.keys(ridgelineData).length > 0) {
+                const traces = Object.keys(ridgelineData).map((lane, idx) => ({
+                    x: ridgelineData[lane].months,
+                    y: ridgelineData[lane].counts,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: lane
+                }));
+                Plotly.newPlot('chart-ridgeline', traces, {
+                    yaxis: { title: 'Volume' },
+                    height: 400
+                });
+            }
+            
+            // Stacked area chart
+            const stackedResponse = await fetch(`/api/stacked-area-data?${queryString}`);
+            const stackedData = await stackedResponse.json();
+            
+            if (stackedData.dates && stackedData.dates.length > 0) {
+                const traces = stackedData.lanes.map((lane, idx) => ({
+                    x: stackedData.dates,
+                    y: stackedData.data[idx],
+                    type: 'scatter',
+                    mode: 'lines',
+                    stackgroup: 'one',
+                    name: lane
+                }));
+                Plotly.newPlot('chart-stacked-area', traces, {
+                    yaxis: { title: 'Bookings' },
+                    height: 400
+                });
+            }
+            
+            // Cancel rate over time
+            const bookingsResponse = await fetch(`/api/bookings-over-time?${queryString}`);
+            const bookingsData = await bookingsResponse.json();
+            
+            if (bookingsData.dates && bookingsData.cancel_rates) {
+                Plotly.newPlot('chart-cancel-rate-time', [{
+                    x: bookingsData.dates,
+                    y: bookingsData.cancel_rates,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: { color: '#dc3545' }
+                }], {
+                    yaxis: { title: 'Cancel Rate (%)' },
+                    height: 400
+                });
+            }
+        } catch (error) {
+            console.error('Error loading seasonality charts:', error);
+        }
+    }
+    
+    // Load utilization charts
+    async function loadUtilizationCharts() {
+        try {
+            const queryString = buildQueryString();
+            
+            // Waffle chart (as pie chart)
+            const waffleResponse = await fetch(`/api/waffle-data?${queryString}`);
+            const waffleData = await waffleResponse.json();
+            
+            if (waffleData.labels && waffleData.labels.length > 0) {
+                Plotly.newPlot('chart-waffle', [{
+                    labels: waffleData.labels,
+                    values: waffleData.values,
+                    type: 'pie'
+                }], {
+                    height: 400
+                });
+            }
+            
+            // Risk distribution
+            const riskResponse = await fetch(`/api/risk-distribution?${queryString}`);
+            const riskData = await riskResponse.json();
+            
+            if (riskData.labels && riskData.labels.length > 0) {
+                Plotly.newPlot('chart-risk-distribution', [{
+                    labels: riskData.labels,
+                    values: riskData.values,
+                    type: 'pie',
+                    marker: {
+                        colors: ['#28a745', '#ffc107', '#dc3545']
+                    }
+                }], {
+                    height: 400
+                });
+            }
+        } catch (error) {
+            console.error('Error loading utilization charts:', error);
+        }
+    }
+    
+    // Load risk charts
+    async function loadRiskCharts() {
+        try {
+            const queryString = buildQueryString();
+            
+            // Risk matrix heatmap
+            const matrixResponse = await fetch(`/api/risk-matrix?${queryString}`);
+            const matrixData = await matrixResponse.json();
+            
+            if (matrixData.matrix && matrixData.matrix.length > 0) {
+                Plotly.newPlot('chart-risk-matrix', [{
+                    z: matrixData.matrix,
+                    x: matrixData.lanes,
+                    y: matrixData.ports,
+                    type: 'heatmap',
+                    colorscale: 'Reds'
+                }], {
+                    height: 400
+                });
+            }
+            
+            // Top risky lanes
+            const lanesResponse = await fetch(`/api/top-risky-lanes?${queryString}`);
+            const lanesData = await lanesResponse.json();
+            
+            if (lanesData && lanesData.length > 0) {
+                Plotly.newPlot('chart-top-lanes', [{
+                    x: lanesData.map(d => d.lane),
+                    y: lanesData.map(d => d.cancel_probability * 100),
+                    type: 'bar',
+                    marker: { color: '#dc3545' }
+                }], {
+                    yaxis: { title: 'Cancel Probability (%)' },
+                    height: 400
+                });
+            }
+            
+            // Top risky ports
+            const portsResponse = await fetch(`/api/top-risky-ports?${queryString}`);
+            const portsData = await portsResponse.json();
+            
+            if (portsData && portsData.length > 0) {
+                Plotly.newPlot('chart-top-ports', [{
+                    x: portsData.map(d => d.pol),
+                    y: portsData.map(d => d.cancel_probability * 100),
+                    type: 'bar',
+                    marker: { color: '#ffc107' }
+                }], {
+                    yaxis: { title: 'Cancel Probability (%)' },
+                    height: 400
+                });
+            }
+            
+            // Top outliers table
+            const outliersResponse = await fetch(`/api/top-outliers?${queryString}`);
+            const outliersData = await outliersResponse.json();
+            
+            const tbody = document.querySelector('#table-outliers tbody');
+            tbody.innerHTML = '';
+            
+            if (outliersData && outliersData.length > 0) {
+                outliersData.forEach(booking => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${booking.booking_id || '-'}</td>
+                        <td>${booking.booking_date || '-'}</td>
+                        <td>${booking.pol || '-'}</td>
+                        <td>${booking.pod || '-'}</td>
+                        <td>${booking.lane || '-'}</td>
+                        <td>${(booking.cancel_probability * 100).toFixed(2)}%</td>
+                        <td><span class="badge risk-badge-${booking.cancel_risk?.toLowerCase() || 'low'}">${booking.cancel_risk || 'Low'}</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading risk charts:', error);
+        }
+    }
+    
+    // Load on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadFilterOptions();
+        refreshAllCharts();
+    });
+</script>
+{% endblock %}

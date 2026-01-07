@@ -1,0 +1,183 @@
+<!-- ============================================================================
+FILE: templates/predict.html
+============================================================================ -->
+{% extends "base.html" %}
+
+{% block title %}Single Prediction - Logistics ML{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Single Booking Prediction</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Booking Details</h5>
+                    <form id="predict-form">
+                        <div class="mb-3">
+                            <label class="form-label">Lane</label>
+                            <input type="text" class="form-control" name="lane" required placeholder="e.g., TRANSPACIFIC">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Port of Loading (POL)</label>
+                            <input type="text" class="form-control" name="pol" required placeholder="e.g., SHANGHAI">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Port of Discharge (POD)</label>
+                            <input type="text" class="form-control" name="pod" required placeholder="e.g., LOS ANGELES">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Container State</label>
+                            <select class="form-select" name="container_state" required>
+                                <option value="">Select...</option>
+                                <option value="FCL">FCL</option>
+                                <option value="LCL">LCL</option>
+                                <option value="EMPTY">EMPTY</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Bundle</label>
+                            <input type="text" class="form-control" name="bundle" placeholder="e.g., STANDARD">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Booking Date</label>
+                            <input type="date" class="form-control" name="booking_date" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-calculator"></i> Predict Risk
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Prediction Results</h5>
+                    <div id="results-container" style="display: none;">
+                        <div class="mb-4">
+                            <h6>Cancellation Risk</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Probability:</span>
+                                <strong id="cancel-prob">-</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span>Risk Level:</span>
+                                <span id="cancel-risk" class="badge">-</span>
+                            </div>
+                            <div class="progress mt-2" style="height: 25px;">
+                                <div id="cancel-progress" class="progress-bar" role="progressbar"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6>Broken Route Risk</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Probability:</span>
+                                <strong id="broken-prob">-</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span>Risk Level:</span>
+                                <span id="broken-risk" class="badge">-</span>
+                            </div>
+                            <div class="progress mt-2" style="height: 25px;">
+                                <div id="broken-progress" class="progress-bar" role="progressbar"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="loading-container" style="display: none;">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Predicting...</p>
+                        </div>
+                    </div>
+                    <div id="no-results" class="text-muted text-center">
+                        Submit the form to see predictions
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('predict-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Show loading
+        document.getElementById('results-container').style.display = 'none';
+        document.getElementById('no-results').style.display = 'none';
+        document.getElementById('loading-container').style.display = 'block';
+        
+        // Get form data
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+        
+        try {
+            const response = await fetch('/api/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                // Display results
+                displayResults(result);
+            } else {
+                alert('Error: ' + (result.error || 'Prediction failed'));
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+            document.getElementById('loading-container').style.display = 'none';
+        }
+    });
+    
+    function displayResults(result) {
+        // Cancel risk
+        const cancelProb = (result.cancel.probability * 100).toFixed(2);
+        document.getElementById('cancel-prob').textContent = cancelProb + '%';
+        document.getElementById('cancel-risk').textContent = result.cancel.risk_label;
+        document.getElementById('cancel-risk').className = 'badge risk-badge-' + result.cancel.risk_label.toLowerCase();
+        
+        const cancelProgress = document.getElementById('cancel-progress');
+        cancelProgress.style.width = cancelProb + '%';
+        cancelProgress.className = 'progress-bar bg-' + getRiskColor(result.cancel.risk_label);
+        cancelProgress.textContent = cancelProb + '%';
+        
+        // Broken route risk
+        const brokenProb = (result.broken_route.probability * 100).toFixed(2);
+        document.getElementById('broken-prob').textContent = brokenProb + '%';
+        document.getElementById('broken-risk').textContent = result.broken_route.risk_label;
+        document.getElementById('broken-risk').className = 'badge risk-badge-' + result.broken_route.risk_label.toLowerCase();
+        
+        const brokenProgress = document.getElementById('broken-progress');
+        brokenProgress.style.width = brokenProb + '%';
+        brokenProgress.className = 'progress-bar bg-' + getRiskColor(result.broken_route.risk_label);
+        brokenProgress.textContent = brokenProb + '%';
+        
+        // Show results
+        document.getElementById('results-container').style.display = 'block';
+    }
+    
+    function getRiskColor(riskLabel) {
+        const colors = { 'Low': 'success', 'Medium': 'warning', 'High': 'danger' };
+        return colors[riskLabel] || 'secondary';
+    }
+</script>
+{% endblock %}
+

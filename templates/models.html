@@ -1,0 +1,108 @@
+<!-- ============================================================================
+FILE: templates/models.html
+============================================================================ -->
+{% extends "base.html" %}
+
+{% block title %}Model Metrics - Logistics ML{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Model Evaluation Metrics</h1>
+    
+    {% if metrics %}
+    <div class="row">
+        <!-- Cancel Model -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-times-circle text-danger"></i> Cancellation Model
+                    </h5>
+                    <p class="text-muted">Model: {{ metrics.cancel_model.best_model_name }}</p>
+                    
+                    <table class="table table-striped">
+                        <tbody>
+                            <tr>
+                                <td><strong>Accuracy</strong></td>
+                                <td>{{ "%.4f"|format(metrics.cancel_model.metrics.accuracy) }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Precision</strong></td>
+                                <td>{{ "%.4f"|format(metrics.cancel_model.metrics.precision) }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Recall</strong></td>
+                                <td>{{ "%.4f"|format(metrics.cancel_model.metrics.recall) }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>F1 Score</strong></td>
+                                <td>{{ "%.4f"|format(metrics.cancel_model.metrics.f1) }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>AUC-ROC</strong></td>
+                                <td>{{ "%.4f"|format(metrics.cancel_model.metrics.auc) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Broken Route Model -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-exclamation-triangle text-warning"></i> Broken Route Model
+                    </h5>
+                    <p class="text-muted">Model: {{ metrics.broken_route_model.best_model_name }}</p>
+                    
+                    <table class="table table-striped">
+                        <tbody>
+                            <tr>
+                                <td><strong>Accuracy</strong></td>
+                                <td>{{ "%.4f"|format(metrics.broken_route_model.metrics.accuracy) }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Precision</strong></td>
+                                <td>{{ "%.4f"|format(metrics.broken_route_model.metrics.precision) }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Recall</strong></td>
+                                <td>{{ "%.4f"|format(metrics.broken_route_model.metrics.recall) }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>F1 Score</strong></td>
+                                <td>{{ "%.4f"|format(metrics.broken_route_model.metrics.f1) }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>AUC-ROC</strong></td>
+                                <td>{{ "%.4f"|format(metrics.broken_route_model.metrics.auc) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i> 
+        No metrics available. Please train the models first by running <code>python train_model.py</code>
+    </div>
+    {% endif %}
+    
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">About the Metrics</h5>
+            <ul>
+                <li><strong>Accuracy:</strong> Overall correctness of predictions</li>
+                <li><strong>Precision:</strong> Of all positive predictions, how many were correct</li>
+                <li><strong>Recall:</strong> Of all actual positives, how many were found</li>
+                <li><strong>F1 Score:</strong> Harmonic mean of precision and recall</li>
+                <li><strong>AUC-ROC:</strong> Area under the ROC curve, measures model discrimination ability</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

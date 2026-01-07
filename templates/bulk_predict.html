@@ -1,0 +1,172 @@
+<!-- ============================================================================
+FILE: templates/bulk_predict.html
+============================================================================ -->
+{% extends "base.html" %}
+
+{% block title %}Bulk Prediction - Logistics ML{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Bulk Prediction</h1>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Upload CSV File</h5>
+                    <p class="text-muted">Upload a CSV file with booking data to get predictions for all records.</p>
+                    
+                    <form id="bulk-form">
+                        <div class="mb-3">
+                            <label class="form-label">Choose File</label>
+                            <input type="file" class="form-control" id="csv-file" accept=".csv" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Upload and Predict
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="results-section" style="display: none;" class="mt-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">Results Preview</h5>
+                    <button id="download-btn" class="btn btn-success">
+                        <i class="fas fa-download"></i> Download Results
+                    </button>
+                </div>
+                <p>Total records: <strong id="total-records">0</strong></p>
+                <div class="table-responsive">
+                    <table class="table table-striped" id="results-table">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loading-section" style="display: none;" class="mt-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Processing your file...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let csvData = null;
+    
+    document.getElementById('bulk-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('csv-file');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            alert('Please select a file');
+            return;
+        }
+        
+        // Show loading
+        document.getElementById('results-section').style.display = 'none';
+        document.getElementById('loading-section').style.display = 'block';
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch('/api/bulk-predict', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                csvData = result.csv_data;
+                displayResults(result);
+            } else {
+                alert('Error: ' + (result.error || 'Prediction failed'));
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+            document.getElementById('loading-section').style.display = 'none';
+        }
+    });
+    
+    function displayResults(result) {
+        document.getElementById('total-records').textContent = result.total_records;
+        
+        if (result.preview && result.preview.length > 0) {
+            // Build table
+            const table = document.getElementById('results-table');
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+            
+            // Clear previous content
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
+            
+            // Headers
+            const headers = Object.keys(result.preview[0]);
+            const headerRow = document.createElement('tr');
+            headers.forEach(h => {
+                const th = document.createElement('th');
+                th.textContent = h;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            
+            // Rows
+            result.preview.forEach(row => {
+                const tr = document.createElement('tr');
+                headers.forEach(h => {
+                    const td = document.createElement('td');
+                    let value = row[h];
+                    
+                    // Format risk labels with badges
+                    if (h.includes('risk') && typeof value === 'string') {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge risk-badge-' + value.toLowerCase();
+                        badge.textContent = value;
+                        td.appendChild(badge);
+                    } else if (h.includes('probability')) {
+                        td.textContent = (value * 100).toFixed(2) + '%';
+                    } else {
+                        td.textContent = value;
+                    }
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        }
+        
+        document.getElementById('results-section').style.display = 'block';
+    }
+    
+    document.getElementById('download-btn').addEventListener('click', function() {
+        if (csvData) {
+            const blob = new Blob([csvData], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'predictions_' + new Date().toISOString().slice(0,10) + '.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    });
+</script>
+{% endblock %}
+
