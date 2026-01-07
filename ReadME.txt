@@ -3,6 +3,7 @@
 ## 📋 Overview
 
 A complete end-to-end machine learning system for logistics booking risk prediction with an advanced analytics dashboard. This platform predicts:
+
 - **Cancellation Risk**: Probability of a booking being cancelled
 - **Broken Route Risk**: Probability of route disruption
 
@@ -15,61 +16,61 @@ The system includes a modern web interface with real-time data visualization, fi
 ```
 project_root/
 │
-├── artifacts/                    # All ML artifacts and database
-│   ├── data_ingestion/           # Training/test data splits
-│   ├── data_validation/          # Data quality reports
-│   ├── data_transformation/      # Preprocessing pipelines (encoder.pkl)
-│   ├── model_trainer/            # Trained ML models
+├── artifacts/                      # All ML artifacts and database
+│   ├── data_ingestion/             # Training/test data splits
+│   ├── data_validation/            # Data quality reports
+│   ├── data_transformation/        # Preprocessing pipelines (encoder.pkl)
+│   ├── model_trainer/              # Trained ML models
 │   │   ├── cancel_model.pkl
 │   │   └── broken_route_model.pkl
-│   ├── model_evaluation/         # Model performance metrics
-│   └── logistics.db              # SQLite database (bookings_scored table)
+│   ├── model_evaluation/           # Model performance metrics
+│   └── logistics.db                # SQLite database (bookings_scored table)
 │
-├── mlProject/                    # ML pipelines and components
-│   ├── components/               # Core ML components
+├── mlProject/                      # ML pipelines and components
+│   ├── components/                 # Core ML components
 │   │   ├── data_ingestion.py
 │   │   ├── data_validation.py
 │   │   ├── data_transformation.py
 │   │   ├── model_trainer.py
 │   │   ├── model_evaluation.py
-│   │   └── model_service.py      # Central prediction service
-│   ├── pipeline/                 # ML pipelines
-│   ├── constants/                # Configuration constants
-│   └── utils/                    # Utility functions
+│   │   └── model_service.py        # Central prediction service
+│   ├── pipeline/                   # ML pipelines
+│   ├── constants/                  # Configuration constants
+│   └── utils/                      # Utility functions
 │
-├── backend/                      # Flask web application backend
-│   ├── __init__.py               # App factory (creates Flask app)
-│   ├── routes_pages.py           # HTML page routes (dashboard, predict, etc.)
-│   └── routes_api.py             # JSON API endpoints for frontend
+├── backend/                        # Flask web application backend
+│   ├── __init__.py                 # App factory (creates Flask app)
+│   ├── routes_pages.py             # HTML page routes (dashboard, predict, etc.)
+│   └── routes_api.py               # JSON API endpoints for frontend
 │
-├── core/                         # Core prediction services
-│   └── predictor.py             # Unified ML predictor
+├── core/                           # Core prediction services
+│   └── predictor.py                # Unified ML predictor
 │
-├── services/                      # Business logic services
-│   ├── ingestion.py              # Data ingestion (CSV, Excel, JSON)
-│   └── analytics.py              # Analytics and visualization data
+├── services/                       # Business logic services
+│   ├── ingestion.py                # Data ingestion (CSV, Excel, JSON)
+│   └── analytics.py                # Analytics and visualization data
 │
-├── database/                      # Database layer
+├── database/                       # Database layer
 │   └── database/
-│       └── models.py             # Database models and queries
+│       └── models.py               # Database models and queries
 │
-├── templates/                    # HTML templates (Jinja2)
-│   ├── base.html                 # Base template with sidebar
-│   ├── dashboard.html            # Advanced analytics dashboard
-│   ├── predict.html              # Single prediction page
-│   ├── bulk_predict.html         # Bulk prediction page
-│   └── models.html               # Model metrics page
+├── templates/                      # HTML templates (Jinja2)
+│   ├── base.html                   # Base template with sidebar
+│   ├── dashboard.html              # Advanced analytics dashboard
+│   ├── predict.html                # Single prediction page
+│   ├── bulk_predict.html           # Bulk prediction page
+│   └── models.html                 # Model metrics page
 │
-├── data/                         # Sample data directory
-│   └── logistics_data.csv        # Sample logistics data
+├── data/                           # Sample data directory
+│   └── logistics_data.csv          # Sample logistics data
 │
-├── app.py                        # Flask application entry point
-├── train_model.py                # ML model training script
-├── generate_sample_data.py       # Generate synthetic sample data
-├── populate_database.py          # Populate database with predictions
-├── cleanup_database.py           # Remove duplicate records
-├── requirements.txt              # Python dependencies
-└── ReadME                        # This file
+├── app.py                          # Flask application entry point
+├── train_model.py                  # ML model training script
+├── generate_sample_data.py         # Generate synthetic sample data
+├── populate_database.py            # Populate database with predictions
+├── cleanup_database.py             # Remove duplicate records
+├── requirements.txt                # Python dependencies
+└── README.md                       # This file
 ```
 
 ---
@@ -105,7 +106,7 @@ The user interface is built using modern web technologies:
 
 5. **JavaScript (Vanilla JS)**
    - **Purpose**: Client-side interactivity
-   - **Used for**: 
+   - **Used for**:
      - Fetching data from API endpoints
      - Updating charts when filters change
      - Dynamic form handling
@@ -125,7 +126,7 @@ The server-side is built with Python and Flask:
 
 1. **Flask 3.0+** (Python Web Framework)
    - **Purpose**: Web application framework
-   - **Used for**: 
+   - **Used for**:
      - Routing (handling URLs)
      - Rendering HTML templates
      - Serving JSON API endpoints
@@ -142,7 +143,7 @@ The server-side is built with Python and Flask:
 
 3. **Pandas 2.0+** (Data Manipulation)
    - **Purpose**: Data processing and analysis
-   - **Used for**: 
+   - **Used for**:
      - Reading CSV/Excel/JSON files
      - Data transformation
      - Database queries
@@ -156,7 +157,7 @@ The server-side is built with Python and Flask:
 
 5. **scikit-learn 1.3+** (Machine Learning)
    - **Purpose**: ML algorithms and preprocessing
-   - **Used for**: 
+   - **Used for**:
      - Logistic Regression
      - Random Forest
      - Data preprocessing (OneHotEncoder, StandardScaler)
@@ -312,7 +313,7 @@ This will do steps 2-5 automatically!
 
 **Features:**
 - **Filter Bar**: Filter by date range, month, year, lane, or port
-- **KPI Cards**: 
+- **KPI Cards**:
   - Total Bookings
   - Cancel Rate (%)
   - Broken Route Rate (%)
@@ -396,57 +397,74 @@ All API endpoints return JSON data and support filtering via query parameters.
 
 ### Dashboard Endpoints
 
-- `GET /api/dashboard-summary` - Get KPI statistics
+- `GET /api/dashboard-summary`
+  - Get KPI statistics
   - Query params: `start_date`, `end_date`, `month`, `year`, `lane`, `pol`
-  
-- `GET /api/bookings-over-time` - Get bookings aggregated over time
+
+- `GET /api/bookings-over-time`
+  - Get bookings aggregated over time
   - Query params: Same as above + `freq` (D/M/Y for daily/monthly/yearly)
 
-- `GET /api/cancellations-by-port` - Get cancellation rates by port
+- `GET /api/cancellations-by-port`
+  - Get cancellation rates by port
   - Query params: Filters + `top_n` (default: 10)
 
-- `GET /api/cancellations-by-lane` - Get cancellation rates by lane
+- `GET /api/cancellations-by-lane`
+  - Get cancellation rates by lane
   - Query params: Filters + `top_n` (default: 10)
 
-- `GET /api/risk-distribution` - Get risk level distribution
+- `GET /api/risk-distribution`
+  - Get risk level distribution
   - Query params: Filters
 
-- `GET /api/flow-data` - Get data for Sankey diagram
+- `GET /api/flow-data`
+  - Get data for Sankey diagram
   - Query params: Filters
 
-- `GET /api/seasonality-data` - Get data for calendar heatmap
+- `GET /api/seasonality-data`
+  - Get data for calendar heatmap
   - Query params: Filters
 
-- `GET /api/network-data` - Get data for chord diagram
+- `GET /api/network-data`
+  - Get data for chord diagram
   - Query params: Filters
 
-- `GET /api/risk-matrix` - Get risk matrix heatmap data
+- `GET /api/risk-matrix`
+  - Get risk matrix heatmap data
   - Query params: Filters
 
-- `GET /api/ridgeline-data` - Get ridgeline plot data
+- `GET /api/ridgeline-data`
+  - Get ridgeline plot data
   - Query params: Filters
 
-- `GET /api/stacked-area-data` - Get stacked area chart data
+- `GET /api/stacked-area-data`
+  - Get stacked area chart data
   - Query params: Filters
 
-- `GET /api/waffle-data` - Get waffle chart data
+- `GET /api/waffle-data`
+  - Get waffle chart data
   - Query params: Filters
 
-- `GET /api/top-risky-lanes` - Get top risky lanes
+- `GET /api/top-risky-lanes`
+  - Get top risky lanes
   - Query params: Filters + `top_n` (default: 5)
 
-- `GET /api/top-risky-ports` - Get top risky ports
+- `GET /api/top-risky-ports`
+  - Get top risky ports
   - Query params: Filters + `top_n` (default: 5)
 
-- `GET /api/top-outliers` - Get highest-risk bookings
+- `GET /api/top-outliers`
+  - Get highest-risk bookings
   - Query params: Filters + `top_n` (default: 10)
 
-- `GET /api/filter-options` - Get available filter values
+- `GET /api/filter-options`
+  - Get available filter values
   - Returns: Available lanes, ports, years for dropdowns
 
 ### Prediction Endpoints
 
-- `POST /api/predict` - Single booking prediction
+- `POST /api/predict`
+  - Single booking prediction
   ```json
   {
     "lane": "TRANSPACIFIC",
@@ -458,7 +476,8 @@ All API endpoints return JSON data and support filtering via query parameters.
   }
   ```
 
-- `POST /api/bulk-predict` - Bulk CSV/Excel/JSON prediction
+- `POST /api/bulk-predict`
+  - Bulk CSV/Excel/JSON prediction
   - Upload file as `multipart/form-data` with key `file`
   - Returns: Preview, total records, and CSV download
 
@@ -478,16 +497,16 @@ CREATE TABLE bookings_scored (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     booking_id TEXT,
     booking_date DATE,
-    pol TEXT,                    -- Port of Loading
-    pod TEXT,                    -- Port of Discharge
-    lane TEXT,                   -- Trade Lane
-    bundle TEXT,                 -- Bundle Type
-    container_state TEXT,         -- FCL, LCL, EMPTY
-    cancel_probability REAL,      -- 0.0 to 1.0
-    cancel_risk TEXT,            -- Low, Medium, High
+    pol TEXT,                      -- Port of Loading
+    pod TEXT,                      -- Port of Discharge
+    lane TEXT,                     -- Trade Lane
+    bundle TEXT,                   -- Bundle Type
+    container_state TEXT,          -- FCL, LCL, EMPTY
+    cancel_probability REAL,       -- 0.0 to 1.0
+    cancel_risk TEXT,              -- Low, Medium, High
     broken_route_probability REAL, -- 0.0 to 1.0
-    broken_route_risk TEXT,      -- Low, Medium, High
-    created_at TIMESTAMP         -- When record was created
+    broken_route_risk TEXT,        -- Low, Medium, High
+    created_at TIMESTAMP           -- When record was created
 );
 ```
 
@@ -513,17 +532,23 @@ CREATE TABLE bookings_scored (
 
 2. **Bulk Prediction Flow:**
    ```
-   User uploads file → DataIngestionService.ingest()
+   User uploads file
+   → DataIngestionService.ingest()
    → UnifiedPredictor.predict_bookings()
-   → insert_scored_bookings() → Database
+   → insert_scored_bookings()
+   → Database
    → Dashboard reads from database
    ```
 
 3. **Dashboard Display Flow:**
    ```
-   User applies filters → JavaScript fetch() → API endpoint
-   → query_scored_bookings(filters) → Database query
-   → AnalyticsService processes data → JSON response
+   User applies filters
+   → JavaScript fetch()
+   → API endpoint
+   → query_scored_bookings(filters)
+   → Database query
+   → AnalyticsService processes data
+   → JSON response
    → Plotly.js renders charts
    ```
 
@@ -547,9 +572,9 @@ COLUMN_MAPPING = {
 ### Adding New Features
 
 1. Update `mlProject/constants/__init__.py`:
-   ```python
-   CATEGORICAL_FEATURES = ["pol", "pod", "lane", "new_feature"]
-   ```
+```python
+CATEGORICAL_FEATURES = ["pol", "pod", "lane", "new_feature"]
+```
 
 2. Retrain models: `python train_model.py`
 
@@ -685,6 +710,7 @@ Before deploying to production:
 ## 🤝 Support
 
 For issues or questions:
+
 1. Check console logs for errors
 2. Verify data format matches expected schema
 3. Ensure models are trained (`artifacts/model_trainer/*.pkl` exists)
